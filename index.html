@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MatchMind — Post-Match Coaching Journal</title>
+  <meta name="description" content="A post-match coaching journal built for amateur soccer coaches. Log structured check-ins in under 2 minutes. Track trends. Share results.">
+  <meta property="og:title" content="MatchMind — Post-Match Coaching Journal">
+  <meta property="og:description" content="Capture your thoughts before you forget them. Log post-match check-ins, track trends, share results.">
+  <meta property="og:image" content="https://matchmind-app.github.io/legal/og-image.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/png" href="../app/assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --brand-dark: #022C22;
+      --brand-deep: #064E3B;
+      --brand-forest: #065F46;
+      --emerald-700: #047857;
+      --emerald-600: #059669;
+      --emerald-500: #10B981;
+      --mint: #34D399;
+      --white: #FFFFFF;
+      --gray-50: #F8FAFC;
+      --gray-100: #F1F5F9;
+      --gray-200: #E2E8F0;
+      --gray-400: #94A3B8;
+      --gray-500: #64748B;
+      --gray-600: #475569;
+      --gray-800: #1E293B;
+      --gray-900: #0F172A;
+      --font-display: 'Outfit', system-ui, -apple-system, sans-serif;
+      --font-body: 'DM Sans', system-ui, -apple-system, sans-serif;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      color: var(--gray-800);
+      background: var(--white);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ===== NAVIGATION ===== */
+    .nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 1rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .nav.scrolled {
+      background: rgba(2, 44, 34, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 0.75rem 2rem;
+      box-shadow: 0 1px 0 rgba(52, 211, 153, 0.1);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      text-decoration: none;
+    }
+    .nav-brand svg { width: 32px; height: 32px; }
+    .nav-wordmark {
+      font-family: var(--font-display);
+      font-size: 1.125rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .nav-wordmark .match { color: var(--white); }
+    .nav-wordmark .mind { color: var(--mint); }
+    .nav-links { display: flex; align-items: center; gap: 2rem; }
+    .nav-links a {
+      color: rgba(255,255,255,0.7);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: color 0.2s;
+      font-family: var(--font-display);
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta {
+      background: var(--emerald-600) !important;
+      color: var(--white) !important;
+      padding: 0.5rem 1.25rem !important;
+      border-radius: 8px;
+      font-weight: 600 !important;
+      transition: background 0.2s, transform 0.2s !important;
+    }
+    .nav-cta:hover {
+      background: var(--emerald-500) !important;
+      transform: translateY(-1px);
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--brand-forest) 0%, var(--emerald-700) 25%, var(--brand-dark) 60%, var(--brand-dark) 100%);
+      overflow: hidden;
+      padding: 6rem 2rem 4rem;
+    }
+    .hero-bg-pattern {
+      position: absolute;
+      inset: 0;
+      opacity: 0.04;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(52,211,153,0.3) 80px, rgba(52,211,153,0.3) 81px),
+        repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(52,211,153,0.3) 80px, rgba(52,211,153,0.3) 81px);
+    }
+    .hero-glow {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(4, 120, 87, 0.3) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .hero-pentagon {
+      position: absolute;
+      right: -100px;
+      bottom: -100px;
+      opacity: 0.03;
+      pointer-events: none;
+    }
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      max-width: 720px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      border-radius: 100px;
+      padding: 0.375rem 1rem;
+      margin-bottom: 2rem;
+      font-family: var(--font-display);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--mint);
+      letter-spacing: 0.02em;
+    }
+    .hero-badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--mint);
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .hero-mark {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    .hero-mark svg {
+      width: 80px;
+      height: 80px;
+      filter: drop-shadow(0 0 40px rgba(52, 211, 153, 0.2));
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 7vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .hero h1 .match { color: var(--white); }
+    .hero h1 .mind { color: var(--mint); }
+    .hero-subtitle {
+      font-family: var(--font-display);
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 400;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .hero-tagline {
+      font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.6;
+      max-width: 540px;
+      margin: 0 auto 2.5rem;
+    }
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+    .app-store-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: var(--white);
+      color: var(--gray-900);
+      padding: 0.875rem 2rem;
+      border-radius: 14px;
+      text-decoration: none;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 1.0625rem;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+    }
+    .app-store-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+    }
+    .app-store-btn svg { width: 24px; height: 24px; }
+    .hero-note {
+      font-size: 0.8125rem;
+      color: rgba(255,255,255,0.35);
+      font-style: italic;
+    }
+
+    /* ===== SECTION STYLES ===== */
+    section { padding: 6rem 2rem; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--emerald-600);
+      margin-bottom: 0.75rem;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--gray-900);
+      margin-bottom: 1rem;
+      line-height: 1.15;
+    }
+    .section-desc {
+      font-size: 1.125rem;
+      color: var(--gray-500);
+      line-height: 1.65;
+      max-width: 560px;
+    }
+
+    /* ===== HOW IT WORKS ===== */
+    .how-it-works { background: var(--gray-50); }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      margin-top: 3.5rem;
+    }
+    .step {
+      position: relative;
+      background: var(--white);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      border: 1px solid var(--gray-200);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .step:hover {
+      border-color: rgba(5, 150, 105, 0.3);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(5, 150, 105, 0.08);
+    }
+    .step-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--emerald-600), var(--emerald-700));
+      color: var(--white);
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+    }
+    .step-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .step h3 {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.625rem;
+      color: var(--gray-900);
+    }
+    .step p {
+      color: var(--gray-500);
+      line-height: 1.6;
+      font-size: 0.9375rem;
+    }
+    .step-time {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      margin-top: 1rem;
+      padding: 0.25rem 0.75rem;
+      background: rgba(5, 150, 105, 0.08);
+      border-radius: 100px;
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--emerald-700);
+    }
+
+    /* ===== FEATURES ===== */
+    .features-section { background: var(--white); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.25rem;
+      margin-top: 3.5rem;
+    }
+    .feature-card {
+      padding: 1.75rem;
+      border-radius: 16px;
+      background: var(--gray-50);
+      border: 1px solid transparent;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card:hover {
+      border-color: var(--gray-200);
+      background: var(--white);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(0,0,0,0.04);
+    }
+    .feature-card.premium {
+      background: linear-gradient(135deg, rgba(4,120,87,0.04), rgba(52,211,153,0.06));
+      border: 1px solid rgba(52,211,153,0.15);
+    }
+    .feature-card.premium:hover {
+      border-color: rgba(52,211,153,0.3);
+    }
+    .feature-icon {
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .feature-card h4 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.375rem;
+      color: var(--gray-900);
+    }
+    .feature-card p {
+      font-size: 0.875rem;
+      color: var(--gray-500);
+      line-height: 1.5;
+    }
+    .premium-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-family: var(--font-display);
+      font-size: 0.625rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--emerald-600);
+      margin-bottom: 0.75rem;
+    }
+
+    /* ===== SCREENSHOTS ===== */
+    .screenshots-section {
+      background: var(--brand-dark);
+      padding: 6rem 0;
+      overflow: hidden;
+    }
+    .screenshots-section .section-label { color: var(--mint); }
+    .screenshots-section .section-title { color: var(--white); }
+    .screenshots-section .section-desc { color: rgba(255,255,255,0.5); }
+    .screenshots-header { padding: 0 2rem; max-width: 1100px; margin: 0 auto; }
+    .screenshots-track {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 3.5rem;
+      padding: 0 2rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .screenshots-track::-webkit-scrollbar { display: none; }
+    .screenshot-item {
+      flex: 0 0 260px;
+      scroll-snap-align: center;
+    }
+    .screenshot-frame {
+      width: 260px;
+      height: 520px;
+      border-radius: 24px;
+      background: linear-gradient(180deg, var(--brand-forest), var(--emerald-700));
+      border: 2px solid rgba(52,211,153,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.2);
+      font-family: var(--font-display);
+      font-size: 0.875rem;
+      text-align: center;
+      padding: 1.5rem;
+      transition: all 0.3s;
+      overflow: hidden;
+      position: relative;
+    }
+    .screenshot-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 22px;
+    }
+    .screenshot-frame .placeholder-text {
+      opacity: 0.4;
+      font-size: 0.8125rem;
+      line-height: 1.5;
+    }
+    .screenshot-item:hover .screenshot-frame {
+      border-color: rgba(52,211,153,0.3);
+      transform: translateY(-4px);
+    }
+    .screenshot-caption {
+      margin-top: 1rem;
+      font-family: var(--font-display);
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.6);
+      text-align: center;
+    }
+
+    /* ===== PRICING ===== */
+    .pricing-section { background: var(--gray-50); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+      margin-top: 3.5rem;
+      max-width: 800px;
+    }
+    .pricing-card {
+      background: var(--white);
+      border-radius: 20px;
+      padding: 2.5rem;
+      border: 1px solid var(--gray-200);
+      position: relative;
+    }
+    .pricing-card.featured {
+      border: 2px solid var(--emerald-600);
+      box-shadow: 0 8px 40px rgba(5, 150, 105, 0.1);
+    }
+    .pricing-card.featured::before {
+      content: 'Most Popular';
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, var(--emerald-600), var(--emerald-700));
+      color: var(--white);
+      font-family: var(--font-display);
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.25rem 1rem;
+      border-radius: 100px;
+    }
+    .pricing-tier {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gray-400);
+      margin-bottom: 0.5rem;
+    }
+    .pricing-amount {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      color: var(--gray-900);
+      margin-bottom: 0.25rem;
+    }
+    .pricing-period {
+      font-size: 0.875rem;
+      color: var(--gray-400);
+      margin-bottom: 2rem;
+    }
+    .pricing-features { list-style: none; }
+    .pricing-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.625rem;
+      padding: 0.5rem 0;
+      font-size: 0.9375rem;
+      color: var(--gray-600);
+      line-height: 1.4;
+    }
+    .pricing-features li::before {
+      content: '✓';
+      color: var(--emerald-600);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .pricing-btn {
+      display: block;
+      width: 100%;
+      padding: 0.875rem;
+      border-radius: 12px;
+      text-align: center;
+      font-family: var(--font-display);
+      font-size: 0.9375rem;
+      font-weight: 600;
+      text-decoration: none;
+      margin-top: 2rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+    }
+    .pricing-btn.outline {
+      background: transparent;
+      border: 1.5px solid var(--gray-200);
+      color: var(--gray-800);
+    }
+    .pricing-btn.outline:hover {
+      border-color: var(--gray-400);
+      background: var(--gray-50);
+    }
+    .pricing-btn.filled {
+      background: linear-gradient(135deg, var(--emerald-600), var(--emerald-700));
+      color: var(--white);
+      box-shadow: 0 4px 16px rgba(5, 150, 105, 0.25);
+    }
+    .pricing-btn.filled:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(5, 150, 105, 0.35);
+    }
+    .pricing-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--emerald-600);
+      font-weight: 500;
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      background: var(--brand-dark);
+      padding: 3rem 2rem;
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .footer-brand svg { width: 28px; height: 28px; }
+    .footer-brand .nav-wordmark { font-size: 1rem; }
+    .footer-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+    .footer-links a {
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      font-size: 0.8125rem;
+      font-family: var(--font-display);
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: rgba(255,255,255,0.7); }
+    .footer-copy {
+      color: rgba(255,255,255,0.25);
+      font-size: 0.75rem;
+      width: 100%;
+      text-align: center;
+      margin-top: 1rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ===== ANIMATIONS ===== */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+
+    .hero-content > * {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: hero-fade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .hero-content > *:nth-child(1) { animation-delay: 0.1s; }
+    .hero-content > *:nth-child(2) { animation-delay: 0.2s; }
+    .hero-content > *:nth-child(3) { animation-delay: 0.35s; }
+    .hero-content > *:nth-child(4) { animation-delay: 0.45s; }
+    .hero-content > *:nth-child(5) { animation-delay: 0.55s; }
+    .hero-content > *:nth-child(6) { animation-delay: 0.65s; }
+    .hero-content > *:nth-child(7) { animation-delay: 0.75s; }
+
+    @keyframes hero-fade-in {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      .steps { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 420px; }
+      .nav-links { display: none; }
+    }
+    @media (max-width: 600px) {
+      section { padding: 4rem 1.25rem; }
+      .features-grid { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; }
+      .hero { padding: 5rem 1.25rem 3rem; }
+      .screenshot-item { flex: 0 0 220px; }
+      .screenshot-frame { width: 220px; height: 440px; }
+      .screenshots-section { padding: 4rem 0; }
+      .footer-inner { flex-direction: column; text-align: center; }
+      .footer-links { flex-wrap: wrap; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVIGATION -->
+  <nav class="nav" id="nav">
+    <a href="#" class="nav-brand">
+      <svg viewBox="0 0 200 200" width="32" height="32">
+        <polygon points="100,16 186,74 153,170 47,170 14,74" fill="#047857"/>
+        <polygon points="100,34.4 168.8,80.8 142.4,157.6 57.6,157.6 31.2,80.8" fill="none" stroke="#34D399" stroke-width="0.8" opacity="0.3"/>
+        <polygon points="100,52.8 151.6,87.6 131.8,145.2 68.2,145.2 48.4,87.6" fill="none" stroke="#34D399" stroke-width="0.8" opacity="0.3"/>
+        <polygon points="100,71.2 134.4,94.4 121.2,132.8 78.8,132.8 65.6,94.4" fill="none" stroke="#34D399" stroke-width="0.8" opacity="0.3"/>
+        <polygon points="100,89.6 117.2,101.2 110.6,120.4 89.4,120.4 82.8,101.2" fill="none" stroke="#34D399" stroke-width="0.8" opacity="0.25"/>
+        <line x1="100" y1="108" x2="100" y2="16" stroke="#34D399" stroke-width="0.6" opacity="0.3"/>
+        <line x1="100" y1="108" x2="186" y2="74" stroke="#34D399" stroke-width="0.6" opacity="0.3"/>
+        <line x1="100" y1="108" x2="153" y2="170" stroke="#34D399" stroke-width="0.6" opacity="0.3"/>
+        <line x1="100" y1="108" x2="47" y2="170" stroke="#34D399" stroke-width="0.6" opacity="0.3"/>
+        <line x1="100" y1="108" x2="14" y2="74" stroke="#34D399" stroke-width="0.6" opacity="0.3"/>
+        <polygon points="100,29.8 151.6,87.6 137.1,151.4 76.2,136 35.5,82.6" fill="#34D399" opacity="0.25"/>
+        <polygon points="100,29.8 151.6,87.6 137.1,151.4 76.2,136 35.5,82.6" fill="none" stroke="#34D399" stroke-width="1.5" opacity="0.5"/>
+        <path d="M 32,160 L 50,46 L 78,46 L 100,96 L 136,46 L 164,46 L 148,160 L 126,160 L 136,84 L 104,130 L 90,130 L 72,84 L 62,160 Z" fill="#ffffff" opacity="0.95"/>
+      </svg>
+      <span class="nav-wordmark"><span class="match">match</span><span class="mind">mind</span></span>
+    </a>
+    <div class="nav-links">
+      <a href="#how-it-works">How It Works</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#download" class="nav-cta">Download</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-bg-pattern"></div>
+    <div class="hero-glow"></div>
+    <svg class="hero-pentagon" viewBox="0 0 200 200" width="500" height="500">
+      <polygon points="100,16 186,74 153,170 47,170 14,74" fill="none" stroke="#34D399" stroke-width="0.5"/>
+      <polygon points="100,34.4 168.8,80.8 142.4,157.6 57.6,157.6 31.2,80.8" fill="none" stroke="#34D399" stroke-width="0.3"/>
+      <polygon points="100,52.8 151.6,87.6 131.8,145.2 68.2,145.2 48.4,87.6" fill="none" stroke="#34D399" stroke-width="0.3"/>
+    </svg>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Now on the App Store
+      </div>
+      <div class="hero-mark">
+        <svg viewBox="0 0 200 200" width="80" height="80">
+          <polygon points="100,16 186,74 153,170 47,170 14,74" fill="#047857"/>
+          <polygon points="100,34.4 168.8,80.8 142.4,157.6 57.6,157.6 31.2,80.8" fill="none" stroke="#34D399" stroke-width="0.8" opacity="0.3"/>
+          <polygon points="100,52.8 151.6,87.6 131.8,145.2 68.2,145.2 48.4,87.6" fill="none" stroke="#34D399" stroke-width="0.8" opacity="0.3"/>
+          <polygon points="100,71.2 134.4,94.4 121.2,132.8 78.8,132.8 65.6,94.4" fill="none" stroke="#34D399" stroke-width="0.8" opacity="0.3"/>
+          <polygon points="100,89.6 117.2,101.2 110.6,120.4 89.4,120.4 82.8,101.2" fill="none" stroke="#34D399" stroke-width="0.8" opacity="0.25"/>
+          <line x1="100" y1="108" x2="100" y2="16" stroke="#34D399" stroke-width="0.6" opacity="0.3"/>
+          <line x1="100" y1="108" x2="186" y2="74" stroke="#34D399" stroke-width="0.6" opacity="0.3"/>
+          <line x1="100" y1="108" x2="153" y2="170" stroke="#34D399" stroke-width="0.6" opacity="0.3"/>
+          <line x1="100" y1="108" x2="47" y2="170" stroke="#34D399" stroke-width="0.6" opacity="0.3"/>
+          <line x1="100" y1="108" x2="14" y2="74" stroke="#34D399" stroke-width="0.6" opacity="0.3"/>
+          <polygon points="100,29.8 151.6,87.6 137.1,151.4 76.2,136 35.5,82.6" fill="#34D399" opacity="0.25"/>
+          <polygon points="100,29.8 151.6,87.6 137.1,151.4 76.2,136 35.5,82.6" fill="none" stroke="#34D399" stroke-width="1.5" opacity="0.5"/>
+          <path d="M 32,160 L 50,46 L 78,46 L 100,96 L 136,46 L 164,46 L 148,160 L 126,160 L 136,84 L 104,130 L 90,130 L 72,84 L 62,160 Z" fill="#ffffff" opacity="0.95"/>
+        </svg>
+      </div>
+      <h1><span class="match">match</span><span class="mind">mind</span></h1>
+      <p class="hero-subtitle">Post-Match Coaching Journal</p>
+      <p class="hero-tagline">Capture your thoughts before you forget them. Log structured post-match check-ins in under two minutes.</p>
+      <div class="hero-actions" id="download">
+        <a href="#" class="app-store-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+          Download on the App Store
+        </a>
+        <span class="hero-note">Free to use. Premium from $2.99/mo.</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="section-inner">
+      <div class="reveal">
+        <p class="section-label">How It Works</p>
+        <h2 class="section-title">Three steps. Two minutes.<br>Every match.</h2>
+        <p class="section-desc">After the final whistle, open MatchMind and log a structured check-in that captures how you felt, how your team performed, and what stood out.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal reveal-delay-1">
+          <div class="step-number">1</div>
+          <span class="step-icon">&#9997;&#65039;</span>
+          <h3>Log</h3>
+          <p>Record the opponent, score, your honest feeling, and rate four tactical phases: Attacking, Defending, and both Transitions.</p>
+          <span class="step-time">&#9201; Under 2 minutes</span>
+        </div>
+        <div class="step reveal reveal-delay-2">
+          <div class="step-number">2</div>
+          <span class="step-icon">&#128200;</span>
+          <h3>Track</h3>
+          <p>Your check-ins become insights. See win/loss records, feeling trends, phase rating charts, and your most common strengths and weaknesses.</p>
+        </div>
+        <div class="step reveal reveal-delay-3">
+          <div class="step-number">3</div>
+          <span class="step-icon">&#128227;</span>
+          <h3>Share</h3>
+          <p>Generate match result cards with your ratings and tactical breakdown. Share to Messages, Instagram, WhatsApp, or anywhere else.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features-section" id="features">
+    <div class="section-inner">
+      <div class="reveal">
+        <p class="section-label">Features</p>
+        <h2 class="section-title">Everything you need.<br>Nothing you don't.</h2>
+        <p class="section-desc">A generous free tier with powerful upgrades for coaches who want deeper analysis.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card reveal reveal-delay-1">
+          <span class="feature-icon">&#127919;</span>
+          <h4>Phase Ratings</h4>
+          <p>Score Attacking, Defending, Transition Attack, and Transition Defense from 1-5 after every match.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-2">
+          <span class="feature-icon">&#128522;</span>
+          <h4>Feeling Tracker</h4>
+          <p>Tap an emoji to capture your honest post-match feeling, from Frustrated to Delighted.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-1">
+          <span class="feature-icon">&#127991;&#65039;</span>
+          <h4>Smart Tags</h4>
+          <p>Tag what went well and what needs work from 14 coaching categories like Pressing, Shape, and Communication.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-2">
+          <span class="feature-icon">&#9917;</span>
+          <h4>Multi-Team</h4>
+          <p>Coaching more than one squad? Create separate teams and switch between them instantly.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-3">
+          <span class="feature-icon">&#127912;</span>
+          <h4>Share Cards</h4>
+          <p>Generate beautiful match result cards with bar charts or radar views. Share anywhere.</p>
+        </div>
+        <div class="feature-card reveal reveal-delay-4">
+          <span class="feature-icon">&#128268;</span>
+          <h4>Works Offline</h4>
+          <p>Log check-ins right after the match, even without signal. Data syncs automatically.</p>
+        </div>
+        <div class="feature-card premium reveal reveal-delay-3">
+          <span class="premium-tag">&#11088; Premium</span>
+          <span class="feature-icon">&#128200;</span>
+          <h4>Trends & Insights</h4>
+          <p>Feeling trend lines, phase rating charts, and tag frequency analysis across your season.</p>
+        </div>
+        <div class="feature-card premium reveal reveal-delay-4">
+          <span class="premium-tag">&#11088; Premium</span>
+          <span class="feature-icon">&#128221;</span>
+          <h4>Match Notes</h4>
+          <p>Add free-text notes with @player mentions and opponent scouting observations.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCREENSHOTS -->
+  <section class="screenshots-section" id="screenshots">
+    <div class="screenshots-header reveal">
+      <p class="section-label">See It In Action</p>
+      <h2 class="section-title">Designed for the touchline,<br>not the office.</h2>
+      <p class="section-desc">Clean, fast, and built for when you've got two minutes before the next team wants the pitch.</p>
+    </div>
+    <div class="screenshots-track">
+      <div class="screenshot-item">
+        <div class="screenshot-frame">
+          <span class="placeholder-text">Home Feed<br><br>Check-in cards with W/D/L badges, scores, and feeling emojis</span>
+        </div>
+        <p class="screenshot-caption">Your post-match journal at a glance</p>
+      </div>
+      <div class="screenshot-item">
+        <div class="screenshot-frame">
+          <span class="placeholder-text">Check-In Form<br><br>Opponent, score, feeling, phase ratings mid-completion</span>
+        </div>
+        <p class="screenshot-caption">Log a structured check-in in under 2 minutes</p>
+      </div>
+      <div class="screenshot-item">
+        <div class="screenshot-frame">
+          <span class="placeholder-text">Check-In Detail<br><br>Result header, phase bars, positive/negative tags</span>
+        </div>
+        <p class="screenshot-caption">Tactical ratings, tags, and notes for every match</p>
+      </div>
+      <div class="screenshot-item">
+        <div class="screenshot-frame">
+          <span class="placeholder-text">Trends<br><br>W/D/L record, feeling trend, phase charts</span>
+        </div>
+        <p class="screenshot-caption">Spot patterns across your season</p>
+      </div>
+      <div class="screenshot-item">
+        <div class="screenshot-frame">
+          <span class="placeholder-text">Share Card<br><br>Dark card with radar chart, result, ratings</span>
+        </div>
+        <p class="screenshot-caption">Share match results with your team</p>
+      </div>
+      <div class="screenshot-item">
+        <div class="screenshot-frame">
+          <span class="placeholder-text">Teams<br><br>Multiple teams with W/D/L stats</span>
+        </div>
+        <p class="screenshot-caption">Manage all your squads in one place</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing-section" id="pricing">
+    <div class="section-inner">
+      <div class="reveal">
+        <p class="section-label">Pricing</p>
+        <h2 class="section-title">Free forever.<br>Upgrade when you're ready.</h2>
+        <p class="section-desc">Most coaches never need to pay. Premium unlocks deeper analysis for those who want it.</p>
+      </div>
+      <div class="pricing-grid">
+        <div class="pricing-card reveal reveal-delay-1">
+          <p class="pricing-tier">Free</p>
+          <p class="pricing-amount">$0</p>
+          <p class="pricing-period">Forever</p>
+          <ul class="pricing-features">
+            <li>Unlimited teams & check-ins</li>
+            <li>Feeling & phase ratings</li>
+            <li>Smart tag system</li>
+            <li>Win/Draw/Loss tracking</li>
+            <li>Average feeling trends</li>
+            <li>Match share cards</li>
+            <li>Offline support with cloud sync</li>
+          </ul>
+          <a href="#download" class="pricing-btn outline">Get Started Free</a>
+        </div>
+        <div class="pricing-card featured reveal reveal-delay-2">
+          <p class="pricing-tier">Premium</p>
+          <p class="pricing-amount">$2.99</p>
+          <p class="pricing-period">per month</p>
+          <ul class="pricing-features">
+            <li>Everything in Free</li>
+            <li>Match notes with @player mentions</li>
+            <li>Opponent scouting notes</li>
+            <li>Feeling trend charts</li>
+            <li>Phase rating trend charts</li>
+            <li>Tag frequency analysis</li>
+          </ul>
+          <a href="#download" class="pricing-btn filled">Start Premium</a>
+          <p class="pricing-toggle">Or $19.99/year (save 44%)</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <svg viewBox="0 0 200 200" width="28" height="28">
+          <polygon points="100,16 186,74 153,170 47,170 14,74" fill="#047857"/>
+          <polygon points="100,29.8 151.6,87.6 137.1,151.4 76.2,136 35.5,82.6" fill="#34D399" opacity="0.2"/>
+          <path d="M 32,160 L 50,46 L 78,46 L 100,96 L 136,46 L 164,46 L 148,160 L 126,160 L 136,84 L 104,130 L 90,130 L 72,84 L 62,160 Z" fill="#ffffff" opacity="0.95"/>
+        </svg>
+        <span class="nav-wordmark"><span class="match">match</span><span class="mind">mind</span></span>
+      </div>
+      <div class="footer-links">
+        <a href="https://matchmind-app.github.io/legal/privacy-policy.html">Privacy Policy</a>
+        <a href="https://matchmind-app.github.io/legal/terms-of-service.html">Terms of Service</a>
+        <a href="mailto:support@matchmind.app">Contact</a>
+      </div>
+      <p class="footer-copy">&copy; 2026 MatchMind. Built for coaches who care.</p>
+    </div>
+  </footer>
+
+  <script>
+    // Sticky nav background on scroll
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    // Reveal on scroll
+    const reveals = document.querySelectorAll('.reveal');
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+    reveals.forEach(el => revealObserver.observe(el));
+  </script>
+</body>
+</html>
