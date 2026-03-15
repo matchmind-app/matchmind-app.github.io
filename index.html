@@ -425,32 +425,17 @@
     }
     .screenshot-frame {
       width: 260px;
-      height: 520px;
       border-radius: 24px;
-      background: linear-gradient(180deg, var(--brand-forest), var(--emerald-700));
       border: 2px solid rgba(52,211,153,0.15);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: rgba(255,255,255,0.2);
-      font-family: var(--font-display);
-      font-size: 0.875rem;
-      text-align: center;
-      padding: 1.5rem;
       transition: all 0.3s;
       overflow: hidden;
       position: relative;
     }
     .screenshot-frame img {
+      display: block;
       width: 100%;
-      height: 100%;
-      object-fit: cover;
+      height: auto;
       border-radius: 22px;
-    }
-    .screenshot-frame .placeholder-text {
-      opacity: 0.4;
-      font-size: 0.8125rem;
-      line-height: 1.5;
     }
     .screenshot-item:hover .screenshot-frame {
       border-color: rgba(52,211,153,0.3);
@@ -672,7 +657,7 @@
       .features-grid { grid-template-columns: 1fr; max-width: 420px; margin-left: auto; margin-right: auto; }
       .hero { padding: 5rem 1.25rem 3rem; }
       .screenshot-item { flex: 0 0 220px; }
-      .screenshot-frame { width: 220px; height: 440px; }
+      .screenshot-frame { width: 220px; }
       .screenshots-section { padding: 4rem 0; }
       .footer-inner { flex-direction: column; text-align: center; }
       .footer-links { flex-wrap: wrap; justify-content: center; }
@@ -850,37 +835,37 @@
     <div class="screenshots-track">
       <div class="screenshot-item">
         <div class="screenshot-frame">
-          <span class="placeholder-text">Home Feed<br><br>Check-in cards with W/D/L badges, scores, and feeling emojis</span>
+          <img src="screenshots/home.png" alt="MatchMind home feed showing match check-ins with W/D/L badges and feeling emojis" loading="lazy">
         </div>
         <p class="screenshot-caption">Your post-match journal at a glance</p>
       </div>
       <div class="screenshot-item">
         <div class="screenshot-frame">
-          <span class="placeholder-text">Check-In Form<br><br>Opponent, score, feeling, phase ratings mid-completion</span>
+          <img src="screenshots/checkin.png" alt="New check-in form with opponent, score, feeling, and tactical phase ratings" loading="lazy">
         </div>
         <p class="screenshot-caption">Log a structured check-in in under 2 minutes</p>
       </div>
       <div class="screenshot-item">
         <div class="screenshot-frame">
-          <span class="placeholder-text">Check-In Detail<br><br>Result header, phase bars, positive/negative tags</span>
+          <img src="screenshots/details.png" alt="Check-in detail view with radar chart, feeling, and phase rating bars" loading="lazy">
         </div>
         <p class="screenshot-caption">Tactical ratings, tags, and notes for every match</p>
       </div>
       <div class="screenshot-item">
         <div class="screenshot-frame">
-          <span class="placeholder-text">Trends<br><br>W/D/L record, feeling trend, phase charts</span>
+          <img src="screenshots/trends.png" alt="Trends dashboard with season snapshot, feeling trend chart, and phase averages" loading="lazy">
         </div>
         <p class="screenshot-caption">Spot patterns across your season</p>
       </div>
       <div class="screenshot-item">
         <div class="screenshot-frame">
-          <span class="placeholder-text">Share Card<br><br>Dark card with radar chart, result, ratings</span>
+          <img src="screenshots/share.png" alt="Shareable match result card with bar chart ratings and coaching tags" loading="lazy">
         </div>
         <p class="screenshot-caption">Share match results with your team</p>
       </div>
       <div class="screenshot-item">
         <div class="screenshot-frame">
-          <span class="placeholder-text">Teams<br><br>Multiple teams with W/D/L stats</span>
+          <img src="screenshots/teams.png" alt="Teams list showing multiple squads with match records" loading="lazy">
         </div>
         <p class="screenshot-caption">Manage all your squads in one place</p>
       </div>
